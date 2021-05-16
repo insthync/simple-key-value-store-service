@@ -12,7 +12,9 @@ generator client {
 
 model Entry {
   id        Int      @default(autoincrement()) @id
-  ownerId   String   @db.VarChar(255)
+  ownerId   String   @db.VarChar(36)
   key       String   @db.VarChar(255)
   value     String?
+
+  @@index([ownerId, key])
 }
