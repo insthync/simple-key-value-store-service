@@ -9,3 +9,10 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
+model Entry {
+  id        Int      @default(autoincrement()) @id
+  ownerId   String   @db.VarChar(255)
+  key       String   @db.VarChar(255)
+  value     String?
+}
