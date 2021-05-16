@@ -1,8 +1,10 @@
 import fastify from 'fastify'
 import { PrismaClient } from '@prisma/client'
+import * as dotenv from "dotenv";
 
 const server = fastify()
 const prisma = new PrismaClient()
+dotenv.config()
 
 server.get('/:ownerId', async (request, reply) => {
     const params : any = request.params
@@ -114,7 +116,7 @@ server.delete('/', async (request, reply) => {
     reply.code(200).send()
 })
 
-server.listen(8080, (err, address) => {
+server.listen(Number(process.env['PORT']), (err, address) => {
     if (err) {
         console.error(err)
         process.exit(1)
