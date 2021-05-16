@@ -2,7 +2,7 @@ import fastify from 'fastify'
 import authPlugin from 'fastify-auth'
 import bearerAuthPlugin from 'fastify-bearer-auth'
 import { PrismaClient } from '@prisma/client'
-import * as dotenv from "dotenv"
+import * as dotenv from 'dotenv'
 
 const prisma = new PrismaClient()
 dotenv.config()
