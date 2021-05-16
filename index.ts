@@ -1,14 +1,19 @@
 import fastify from 'fastify'
+import authPlugin from 'fastify-auth'
+import bearerAuthPlugin from 'fastify-bearer-auth'
 import { PrismaClient } from '@prisma/client'
-import * as dotenv from "dotenv";
+import * as dotenv from "dotenv"
 
 const server = fastify()
 const prisma = new PrismaClient()
 dotenv.config()
 
-function ValidatePassphrase(passphrase : String | undefined) {
-    return passphrase === process.env['PASSPHRASE'];
-}
+const passphrases: string = process.env['PASSPHRASES']!
+server.register(authPlugin)
+server.register(bearerAuthPlugin, {
+    keys: JSON.parse(passphrases),
+    addHook: false,
+})
 
 server.get('/:ownerId', async (request, reply) => {
     const params : any = request.params
@@ -37,11 +42,11 @@ server.get('/:ownerId/:key', async (request, reply) => {
     reply.code(200).send(entry)
 })
 
-server.post('/', async (request, reply) => {
-    if (!ValidatePassphrase(request.headers.authorization)) {
-        reply.code(401).send()
-        return
-    }
+server.post('/', {
+    preHandler: server.auth([
+        server.verifyBearerAuth!
+    ]),
+}, async (request, reply) => {
     // Create or set value 
     const body : any = request.body
     const ownerId = body.ownerId
@@ -74,11 +79,11 @@ server.post('/', async (request, reply) => {
     reply.code(200).send(entry)
 })
 
-server.patch('/', async (request, reply) => {
-    if (!ValidatePassphrase(request.headers.authorization)) {
-        reply.code(401).send()
-        return
-    }
+server.patch('/', {
+    preHandler: server.auth([
+        server.verifyBearerAuth!
+    ]),
+}, async (request, reply) => {
     // Increase value if value type is numeric, set value if value type is string
     const body : any = request.body
     const ownerId = body.ownerId
@@ -114,11 +119,11 @@ server.patch('/', async (request, reply) => {
     reply.code(200).send(entry)
 })
 
-server.delete('/', async (request, reply) => {
-    if (!ValidatePassphrase(request.headers.authorization)) {
-        reply.code(401).send()
-        return
-    }
+server.delete('/', {
+    preHandler: server.auth([
+        server.verifyBearerAuth!
+    ]),
+}, async (request, reply) => {
     // Delete value
     const body : any = request.body
     const ownerId = body.ownerId
