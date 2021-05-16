@@ -6,6 +6,10 @@ const server = fastify()
 const prisma = new PrismaClient()
 dotenv.config()
 
+function ValidatePassphrase(passphrase : String | undefined) {
+    return passphrase === process.env['PASSPHRASE'];
+}
+
 server.get('/:ownerId', async (request, reply) => {
     const params : any = request.params
     const ownerId = params.ownerId
@@ -34,6 +38,10 @@ server.get('/:ownerId/:key', async (request, reply) => {
 })
 
 server.post('/', async (request, reply) => {
+    if (!ValidatePassphrase(request.headers.authorization)) {
+        reply.code(401).send()
+        return
+    }
     // Create or set value 
     const body : any = request.body
     const ownerId = body.ownerId
@@ -67,6 +75,10 @@ server.post('/', async (request, reply) => {
 })
 
 server.patch('/', async (request, reply) => {
+    if (!ValidatePassphrase(request.headers.authorization)) {
+        reply.code(401).send()
+        return
+    }
     // Increase value if value type is numeric, set value if value type is string
     const body : any = request.body
     const ownerId = body.ownerId
@@ -103,6 +115,10 @@ server.patch('/', async (request, reply) => {
 })
 
 server.delete('/', async (request, reply) => {
+    if (!ValidatePassphrase(request.headers.authorization)) {
+        reply.code(401).send()
+        return
+    }
     // Delete value
     const body : any = request.body
     const ownerId = body.ownerId
