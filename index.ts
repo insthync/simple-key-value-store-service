@@ -3,6 +3,7 @@ import authPlugin from 'fastify-auth'
 import bearerAuthPlugin from 'fastify-bearer-auth'
 import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
+import { request } from 'http'
 
 const prisma = new PrismaClient()
 dotenv.config()
@@ -42,6 +43,26 @@ const server = fastify()
                 }
             })
             reply.code(200).send(entry)
+        })
+
+        server.get('/ranking/:key', async (request, reply) => {
+            const params : any = request.params
+            const key = params.key
+            const query : any = request.query
+            const orderType = query.orderType !== undefined ? query.orderType : 'desc'
+            const skip = query.skip !== undefined ? query.skip : 0
+            const take = query.take !== undefined ? query.take : 50
+            const entries = await prisma.entry.findMany({
+                where: {
+                    ownerId: key
+                },
+                orderBy: [{
+                    value: orderType
+                }],
+                skip: skip,
+                take: take
+            })
+            reply.code(200).send(entries)
         })
 
         server.post('/', {
