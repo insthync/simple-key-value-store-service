@@ -128,15 +128,15 @@ const server = fastify()
             reply.code(200).send(entries)
         })
 
-        server.delete('/', {
+        server.delete('/:ownerId/:key', {
             preHandler: server.auth([
                 server.verifyBearerAuth!
             ]),
         }, async (request, reply) => {
             // Delete value
-            const body : any = request.body
-            const ownerId = body.ownerId
-            const key = body.key
+            const params : any = request.params
+            const ownerId = params.ownerId
+            const key = params.key
             await prisma.entry.deleteMany({
                 where: {
                     ownerId: ownerId,
