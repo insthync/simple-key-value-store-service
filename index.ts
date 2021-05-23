@@ -1,9 +1,10 @@
 import fastify from 'fastify'
 import authPlugin from 'fastify-auth'
 import bearerAuthPlugin from 'fastify-bearer-auth'
-import { PrismaClient } from '@prisma/client'
+import { Entry, PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
 import { request } from 'http'
+import functions from './functions'
 
 const prisma = new PrismaClient()
 dotenv.config()
@@ -75,31 +76,25 @@ const server = fastify()
             const ownerId = body.ownerId
             const key = body.key
             const value = body.value
-            let entry = await prisma.entry.findFirst({
-                where: {
-                    ownerId: ownerId,
-                    key: key
-                }
-            })
-            if (entry) {
-                entry = await prisma.entry.update({
-                    where: { id: Number(entry.id) },
-                    data: {
-                        ownerId: ownerId,
-                        key: key,
-                        value: String(value)
-                    }
-                })
-            } else {
-                entry = await prisma.entry.create({
-                    data: {
-                        ownerId: ownerId,
-                        key: key,
-                        value: String(value)
-                    }
-                })
-            }
+            const entry = await functions.postValue(prisma, ownerId, key, value)
             reply.code(200).send(entry)
+        })
+
+        server.post('/bulk', {
+            preHandler: server.auth([
+                server.verifyBearerAuth!
+            ]),
+        }, async (request, reply) => {
+            // Create or set value 
+            const body : any = request.body
+            let entries : Entry[] = []
+            for (let i = 0; i < body.length; ++i) {
+                const ownerId = body[i].ownerId
+                const key = body[i].key
+                const value = body[i].value
+                entries.push(await functions.postValue(prisma, ownerId, key, value))
+            }
+            reply.code(200).send(entries)
         })
 
         server.patch('/', {
@@ -111,35 +106,26 @@ const server = fastify()
             const body : any = request.body
             const ownerId = body.ownerId
             const key = body.key
-            let value = body.value
-            let entry = await prisma.entry.findFirst({
-                where: {
-                    ownerId: ownerId,
-                    key: key
-                }
-            })
-            if (entry) {
-                if (!isNaN(Number(entry.value)) && !isNaN(Number(value))) {
-                    value = Number(entry.value) + Number(value)
-                }
-                entry = await prisma.entry.update({
-                    where: { id: Number(entry.id) },
-                    data: {
-                        ownerId: ownerId,
-                        key: key,
-                        value: String(value)
-                    }
-                })
-            } else {
-                entry = await prisma.entry.create({
-                    data: {
-                        ownerId: ownerId,
-                        key: key,
-                        value: String(value)
-                    }
-                })
-            }
+            const value = body.value
+            const entry = await functions.patchValue(prisma, ownerId, key, value)
             reply.code(200).send(entry)
+        })
+
+        server.patch('/bulk', {
+            preHandler: server.auth([
+                server.verifyBearerAuth!
+            ]),
+        }, async (request, reply) => {
+            // Create or set value 
+            const body : any = request.body
+            let entries : Entry[] = []
+            for (let i = 0; i < body.length; ++i) {
+                const ownerId = body[i].ownerId
+                const key = body[i].key
+                const value = body[i].value
+                entries.push(await functions.patchValue(prisma, ownerId, key, value))
+            }
+            reply.code(200).send(entries)
         })
 
         server.delete('/', {
