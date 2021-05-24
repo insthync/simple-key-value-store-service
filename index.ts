@@ -3,18 +3,17 @@ import authPlugin from 'fastify-auth'
 import bearerAuthPlugin from 'fastify-bearer-auth'
 import { Entry, PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
-import { request } from 'http'
 import functions from './functions'
 
 const prisma = new PrismaClient()
 dotenv.config()
 
-const passphrases: string = process.env['PASSPHRASES']!
+const secretKeys: string = process.env['SECRET_KEYS']!
 
 const server = fastify()
     .register(authPlugin)
     .register(bearerAuthPlugin, {
-        keys: JSON.parse(passphrases),
+        keys: JSON.parse(secretKeys),
         addHook: false,
     })
     .after(() => {
