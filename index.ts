@@ -59,8 +59,8 @@ const server = fastify()
                 orderBy: [{
                     value: orderType
                 }],
-                skip: skip,
-                take: take
+                skip: Number(skip),
+                take: Number(take)
             })
             reply.code(200).send(entries)
         })
